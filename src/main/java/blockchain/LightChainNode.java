@@ -215,7 +215,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 				return null;
 			}
 
-			logger.debug("Mining Sucessful");
+			logger.info("Mining Sucessful");
 
 			// insert new block after it was validated
 
