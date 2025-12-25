@@ -97,11 +97,6 @@ public class Simulation {
 
 			ConcurrentHashMap<NodeInfo, SimLog> map = new ConcurrentHashMap<>();
 
-			Function<LightChainNode, ExecutorService> execFor = n -> {
-				int idx = Math.floorMod((n.getNumID() % 10), stripes);
-				return stripeExecs.get(idx);
-			};
-
 			long start = System.currentTimeMillis();
 
 			Function<LightChainNode, ExecutorService> execFor = n -> {
@@ -109,6 +104,8 @@ public class Simulation {
 				int idx = Math.floorMod(shard, stripes);
 				return stripeExecs.get(idx);
 			};
+
+			long start = System.currentTimeMillis();
 
 			List<CompletableFuture<Void>> simCFs = allNodes.stream()
 					.map(n -> CompletableFuture.supplyAsync(
