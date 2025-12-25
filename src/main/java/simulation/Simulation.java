@@ -32,13 +32,13 @@ public class Simulation {
 	private static final ConcurrentHashMap<Integer, String> shardIntroducers = new ConcurrentHashMap<>();
 	private static final ConcurrentHashMap<Integer, Boolean> shardInserted = new ConcurrentHashMap<>();
 
-public static void startSimulation(Parameters params, int nodeCount, int iterations, int pace) {
+	public static void startSimulation(Parameters params, int nodeCount, int iterations, int pace) {
 		final int maxShards = params.getMaxShards();
 		final ExecutorService pool = Executors.newFixedThreadPool(
 				Math.max(2, Runtime.getRuntime().availableProcessors()));
 		final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-		int stripes = Math.min(20, Runtime.getRuntime().availableProcessors());
+		int stripes = Math.min(maxShards, Runtime.getRuntime().availableProcessors());
 
 		List<ExecutorService> stripeExecs = IntStream.range(0, stripes)
 				.mapToObj(i -> Executors.newSingleThreadExecutor(r -> {
@@ -65,7 +65,6 @@ public static void startSimulation(Parameters params, int nodeCount, int iterati
 				throw new IllegalStateException(
 						"Expected " + maxShards + " shard introducers, got " + introducerByShard.size());
 			}
-
 
 			int remaining = Math.max(0, nodeCount - maxShards);
 			List<CompletableFuture<LightChainNode>> nodeFuture = IntStream.range(0, remaining)
@@ -104,6 +103,12 @@ public static void startSimulation(Parameters params, int nodeCount, int iterati
 			};
 
 			long start = System.currentTimeMillis();
+
+			Function<LightChainNode, ExecutorService> execFor = n -> {
+				int shard = n.getShardID();
+				int idx = Math.floorMod(shard, stripes);
+				return stripeExecs.get(idx);
+			};
 
 			List<CompletableFuture<Void>> simCFs = allNodes.stream()
 					.map(n -> CompletableFuture.supplyAsync(
