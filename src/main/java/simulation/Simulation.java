@@ -18,12 +18,14 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import main.java.blockchain.Block;
-import main.java.blockchain.LightChainNode;
-import main.java.skipGraph.LookupTable;
-import main.java.skipGraph.NodeInfo;
-import main.java.util.Const;
-import main.java.util.Util;
+import blockchain.Block;
+import blockchain.LightChainNode;
+import blockchain.Parameters;
+import skipGraph.LookupTable;
+import skipGraph.NodeInfo;
+import util.Const;
+import util.Util;
+
 
 public class Simulation {
 
