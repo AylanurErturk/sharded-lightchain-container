@@ -18,13 +18,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import blockchain.Block;
-import blockchain.LightChainNode;
-import blockchain.Parameters;
-import skipGraph.LookupTable;
-import skipGraph.NodeInfo;
-import util.Const;
-import util.Util;
+import main.java.blockchain.Block;
+import main.java.blockchain.LightChainNode;
+import main.java.skipGraph.LookupTable;
+import main.java.skipGraph.NodeInfo;
+import main.java.util.Const;
+import main.java.util.Util;
 
 public class Simulation {
 
@@ -32,7 +31,7 @@ public class Simulation {
 	private static final ConcurrentHashMap<Integer, String> shardIntroducers = new ConcurrentHashMap<>();
 	private static final ConcurrentHashMap<Integer, Boolean> shardInserted = new ConcurrentHashMap<>();
 
-	public static void startSimulation(Parameters params, int nodeCount, int iterations, int pace) {
+public static void startSimulation(Parameters params, int nodeCount, int iterations, int pace) {
 		final int maxShards = params.getMaxShards();
 		final ExecutorService pool = Executors.newFixedThreadPool(
 				Math.max(2, Runtime.getRuntime().availableProcessors()));
@@ -66,6 +65,7 @@ public class Simulation {
 						"Expected " + maxShards + " shard introducers, got " + introducerByShard.size());
 			}
 
+
 			int remaining = Math.max(0, nodeCount - maxShards);
 			List<CompletableFuture<LightChainNode>> nodeFuture = IntStream.range(0, remaining)
 					.mapToObj(i -> CompletableFuture.supplyAsync(() -> {
@@ -96,8 +96,6 @@ public class Simulation {
 			waitAllVoid("Flag insertion", flagCFs, 60, TimeUnit.SECONDS);
 
 			ConcurrentHashMap<NodeInfo, SimLog> map = new ConcurrentHashMap<>();
-
-			long start = System.currentTimeMillis();
 
 			Function<LightChainNode, ExecutorService> execFor = n -> {
 				int shard = n.getShardID();
