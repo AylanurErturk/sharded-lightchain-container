@@ -39,7 +39,7 @@ public static void startSimulation(Parameters params, int nodeCount, int iterati
 				Math.max(2, Runtime.getRuntime().availableProcessors()));
 		final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-		int stripes = Math.min(maxShards, Runtime.getRuntime().availableProcessors());
+		int stripes = Math.min(20, Runtime.getRuntime().availableProcessors());
 
 		List<ExecutorService> stripeExecs = IntStream.range(0, stripes)
 				.mapToObj(i -> Executors.newSingleThreadExecutor(r -> {
