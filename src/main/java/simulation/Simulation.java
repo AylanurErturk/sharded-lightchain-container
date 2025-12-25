@@ -100,8 +100,7 @@ public static void startSimulation(Parameters params, int nodeCount, int iterati
 			ConcurrentHashMap<NodeInfo, SimLog> map = new ConcurrentHashMap<>();
 
 			Function<LightChainNode, ExecutorService> execFor = n -> {
-				int shard = n.getShardID();
-				int idx = Math.floorMod(shard, stripes);
+				int idx = Math.floorMod((n.getNumID() % 10), stripes);
 				return stripeExecs.get(idx);
 			};
 
