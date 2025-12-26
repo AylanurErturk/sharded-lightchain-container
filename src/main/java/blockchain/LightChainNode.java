@@ -112,7 +112,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 		logger.info("Rebinding Successful");
 		if (!isInitial) {
 
-			insertNode(peer)shardID;
+			insertNode(peer);
 
 			addPeerNode(peer);
 
