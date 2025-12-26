@@ -177,14 +177,9 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 				return null;
 			}
 
-			logger.debug("Found Latest Block: " + blk.getNumID());
-			
-			int numToNameNum = blk.getNumID();
-			int mShards = params.getMaxShards();
-			numToNameNum = (numToNameNum / mShards) * mShards + this.getShardID(); 
+			logger.info("Found Latest Block: " + blk.getNumID());
 
-			String name = numToName(numToNameNum);
-			logger.info("blk name:" +blk.getNameID() + " calculated: " +numToNameNum);
+			String name = numToName(blk.getNumID());
 
 			logger.debug("getting transaction batch");
 			// Get all transaction with this nameID
@@ -192,7 +187,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			// If number of transactions obtained is less than TX_MIN then we terminate the
 			// process
 			if (tList == null || tList.size() < params.getTxMin()) {
-				logger.info("Mining Failed: not enough transaction found: " + tList.size());
+				logger.debug("Mining Failed: not enough transaction found: " + tList.size());
 				simLog.logMineAttemptLog(false, false, System.currentTimeMillis() - startTotal, -1);
 				return null;
 			}
@@ -277,7 +272,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 						"Prev found: " + lstBlk.getNumID() + " given shard ID: " + sid + " block sID: "
 								+ lstBlk.getShardID());
 
-				Transaction t = new Transaction(lstBlk.getHash(), getNumID(), cont, getAddress(), params.getLevels(), sid,
+				Transaction t = new Transaction(lstBlk.getHash(), getNumID(), cont, getAddress(), params.getLevels(), 0,
 						params.getMaxShards());
 
 				logger.debug("numID of the owner: " + getNumID() + " Validating transaction with num id " + t.getNumID()
@@ -1002,9 +997,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 	}
 
 	public String numToName(int num) {
-
 		String name = Integer.toBinaryString(num);
-
 		while (name.length() < params.getLevels()) {
 			name = "0" + name;
 		}
