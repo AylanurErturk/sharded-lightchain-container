@@ -178,6 +178,9 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			}
 
 			logger.debug("Found Latest Block: " + blk.getNumID());
+			int numToNameNum = blk.getNumID();
+			int mShards = params.getMaxShards();
+			numToNameNum = (numToNameNum / mShards) * mShards + this.getShardID(); 
 
 			String name = numToName(blk.getNumID());
 
@@ -997,7 +1000,9 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 	}
 
 	public String numToName(int num) {
+
 		String name = Integer.toBinaryString(num);
+
 		while (name.length() < params.getLevels()) {
 			name = "0" + name;
 		}
