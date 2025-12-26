@@ -15,16 +15,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 
-import hashing.Hasher;
-import hashing.HashingTools;
-import signature.DigitalSignature;
-import signature.SignedBytes;
-import simulation.SimLog;
-import simulation.Simulation;
-import skipGraph.NodeInfo;
-import skipGraph.SkipNode;
-import util.Const;
-import util.Util;
+import main.java.hashing.Hasher;
+import main.java.hashing.HashingTools;
+import main.java.signature.DigitalSignature;
+import main.java.signature.SignedBytes;
+import main.java.simulation.SimLog;
+import main.java.simulation.Simulation;
+import main.java.skipGraph.NodeInfo;
+import main.java.skipGraph.SkipNode;
+import main.java.util.Const;
+import main.java.util.Util;
 
 public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 
@@ -181,7 +181,14 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			
 
 			String name = numToName(blk.getNumID());
-			logger.info("block name: " +blk.getNameID() + " calculated name: " +name);
+
+			int numToNameNum = blk.getNumID();
+			int mShards = params.getMaxShards();
+			int ownerShard = blk.getOwner() % mShards;
+			int adjustedNum = (numToNameNum / maxShards) * maxShards + ownerShard;
+			String calcName = Integer.toBinaryString(adjustedNum);
+
+			logger.info("name id given: " +name + " calculated name: " +calcName);
 
 			logger.debug("getting transaction batch");
 			// Get all transaction with this nameID
@@ -239,7 +246,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 	 * @param blk the block for which a flag node will be inserted
 	 */
 	private void insertFlagNode(Block blk, int shardID) {
-		logger.info("inserting Flag Node from block num id:" + blk.getNumID() + " to shard " +shardID);
+		logger.debug("inserting Flag Node from block num id:" + blk.getNumID() + " to shard " +shardID);
 		super.insertDataNode(Const.ZERO_ID, blk.getHash(), shardID);
 	}
 
