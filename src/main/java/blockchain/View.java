@@ -4,19 +4,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class View {
 
-	private ConcurrentHashMap<Integer, Integer> lastBlk;
-	private ConcurrentHashMap<Integer, Integer> state;
-	private ConcurrentHashMap<Integer, Integer> balance;
-	private ConcurrentHashMap<Integer, Boolean> mode;
+	private final ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, Integer>> lastBlk = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Integer, Integer> state = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Integer, Integer> balance = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Integer, Boolean> mode = new ConcurrentHashMap<>();
 
 	/**
 	 * Constructor for an empty view
 	 */
-	public View() {
-		lastBlk = new ConcurrentHashMap<>();
-		state =  new ConcurrentHashMap<>();
-		balance =  new ConcurrentHashMap<>();
-		mode =  new ConcurrentHashMap<>();
+	public View(int shardID) {
+		lastBlk.putIfAbsent(shardID, new ConcurrentHashMap<>());
+
 	}
 
 	/**
@@ -25,8 +23,8 @@ public class View {
 	 * @param numID    numerical ID of node whose entry is to be updated
 	 * @param blkNumID the numerical ID of the latest block of the given node
 	 */
-	public synchronized void updateLastBlk(int numID, int blkNumID) {
-		lastBlk.put(numID, blkNumID);
+	public synchronized void updateLastBlk(int numID, int blkNumID, int shardID) {
+		lastBlk.get(shardID).put(numID, blkNumID);
 	}
 	
 	/**
@@ -46,8 +44,8 @@ public class View {
 		mode.put(numID, newMode);
 	}
 
-	public synchronized int getLastBlk(int numID) {
-		return lastBlk.get(numID);
+	public synchronized int getLastBlk(int numID, int shardID) {
+		return lastBlk.get(shardID).get(numID);
 	}
 
 	public synchronized int getState(int numID) {
