@@ -15,16 +15,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 
-import main.java.hashing.Hasher;
-import main.java.hashing.HashingTools;
-import main.java.signature.DigitalSignature;
-import main.java.signature.SignedBytes;
-import main.java.simulation.SimLog;
-import main.java.simulation.Simulation;
-import main.java.skipGraph.NodeInfo;
-import main.java.skipGraph.SkipNode;
-import main.java.util.Const;
-import main.java.util.Util;
+import hashing.Hasher;
+import hashing.HashingTools;
+import signature.DigitalSignature;
+import signature.SignedBytes;
+import simulation.SimLog;
+import simulation.Simulation;
+import skipGraph.NodeInfo;
+import skipGraph.SkipNode;
+import util.Const;
+import util.Util;
 
 public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 
