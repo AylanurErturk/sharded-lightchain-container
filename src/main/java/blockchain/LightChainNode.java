@@ -69,7 +69,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 		final int shardCount = params.getMaxShards();
 		
 		if (isInitial) {
-			int idx = offset.incrementAndGet();
+			int idx = offset.getAndIncrement();
 			if (idx < shardCount) {
 				int baseNum = Integer.parseInt(name, 2);
 

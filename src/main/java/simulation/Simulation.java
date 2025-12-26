@@ -51,7 +51,7 @@ public static void startSimulation(Parameters params, int nodeCount, int iterati
 
 		try {
 			List<CompletableFuture<LightChainNode>> introFuture = IntStream.range(0, maxShards)
-					.mapToObj(i -> CompletableFuture.supplyAsync(
+					.mapToObj(i -> CompletableFuture.supplySync(
 							() -> buildNodeNoThrow(params, null, true), pool))
 					.toList();
 
