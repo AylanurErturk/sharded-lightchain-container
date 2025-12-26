@@ -239,7 +239,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 	 * @param blk the block for which a flag node will be inserted
 	 */
 	private void insertFlagNode(Block blk, int shardID) {
-		logger.info("inserting Flag Node...");
+		logger.info("inserting Flag Node from block num id: " blk.getNumID() +" to shard " +shardID);
 		super.insertDataNode(Const.ZERO_ID, blk.getHash(), shardID);
 	}
 
