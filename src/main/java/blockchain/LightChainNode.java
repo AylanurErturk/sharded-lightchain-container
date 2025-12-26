@@ -112,7 +112,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 		logger.info("Rebinding Successful");
 		if (!isInitial) {
 
-			insertNode(peer);
+			insertNode(peer)shardID;
 
 			addPeerNode(peer);
 
@@ -182,7 +182,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			int mShards = params.getMaxShards();
 			numToNameNum = (numToNameNum / mShards) * mShards + this.getShardID(); 
 
-			String name = numToName(blk.getNumID());
+			String name = numToName(numToNameNum);
 
 			logger.debug("getting transaction batch");
 			// Get all transaction with this nameID
