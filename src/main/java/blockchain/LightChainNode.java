@@ -272,7 +272,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 						"Prev found: " + lstBlk.getNumID() + " given shard ID: " + sid + " block sID: "
 								+ lstBlk.getShardID());
 
-				Transaction t = new Transaction(lstBlk.getHash(), getNumID(), cont, getAddress(), params.getLevels(), 0,
+				Transaction t = new Transaction(lstBlk.getHash(), getNumID(), cont, getAddress(), params.getLevels(), sid,
 						params.getMaxShards());
 
 				logger.debug("numID of the owner: " + getNumID() + " Validating transaction with num id " + t.getNumID()
