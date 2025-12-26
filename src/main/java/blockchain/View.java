@@ -2,7 +2,6 @@ package blockchain;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import main.java.skipGraph.LookupTable;
 
 public class View {
 
