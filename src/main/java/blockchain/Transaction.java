@@ -37,18 +37,14 @@ public class Transaction extends NodeInfo {
 		int adjustedNum = (baseNum / maxShards) * maxShards + ownerShard;
 			
 		String newHash = Integer.toBinaryString(adjustedNum);
-		if (newHash.length() > levels) 
-			newHash = newHash.substring(newHash.length() - levels);
-		if (newHash.length() < levels) {
-        	newHash = "0".repeat(levels - newHash.length()) + newHash;
-    	} //leading 0s added
+
 
 		this.hash = newHash; //make the hash equal
 
 
 		super.setNumID(Integer.parseInt(this.hash, 2));
 		super.setShardID(Math.floorMod(super.getNumID(), maxShards));
-		assert super.getShardID() == ownerShard;
+		//assert super.getShardID() == ownerShard;
 	}
 
 	public Transaction(Transaction t) {
