@@ -188,11 +188,11 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			int adjustedNum = (numToNameNum / maxShards) * maxShards + ownerShard;
 			String calcName = Integer.toBinaryString(adjustedNum);
 
-			logger.info("name id given: " +name + " calculated name: " +calcName);
+			//logger.info("name id given: " +name + " calculated name: " +calcName);
 
 			logger.debug("getting transaction batch");
 			// Get all transaction with this nameID
-			List<Transaction> tList = getTransactionsWithNameID(name);
+			List<Transaction> tList = getTransactionsWithNameID(calcName);
 			// If number of transactions obtained is less than TX_MIN then we terminate the
 			// process
 			if (tList == null || tList.size() < params.getTxMin()) {
