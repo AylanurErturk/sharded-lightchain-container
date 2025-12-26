@@ -190,7 +190,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			// If number of transactions obtained is less than TX_MIN then we terminate the
 			// process
 			if (tList == null || tList.size() < params.getTxMin()) {
-				logger.info("Mining Failed: not enough transaction found: " + tList.size() +" "+ name );
+				logger.info("Mining Failed: not enough transaction found: " + tList.size());
 				simLog.logMineAttemptLog(false, false, System.currentTimeMillis() - startTotal, -1);
 				return null;
 			}
@@ -429,7 +429,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 
 		List<NodeInfo> list = getNodesWithNameID(name);
 		List<Transaction> tList = new ArrayList<>();
-		logger.debug("found " + list.size() + " transactions");
+		logger.info("found " + list.size() + " transactions with name " +name);
 		for (NodeInfo t : list) {
 			if (t instanceof Transaction)
 				tList.add((Transaction) t);
