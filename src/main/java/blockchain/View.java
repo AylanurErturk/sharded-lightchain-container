@@ -1,22 +1,23 @@
 package blockchain;
 
-import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.HashMap;
+import java.util.Map;
 
 public class View {
 
-	private final ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, Integer>> lastBlk = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<Integer, Integer> state = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<Integer, Integer> balance = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<Integer, Boolean> mode = new ConcurrentHashMap<>();
+	private Map<Integer, Integer> lastBlk;
+	private Map<Integer, Integer> state;
+	private Map<Integer, Integer> balance;
+	private Map<Integer, Boolean> mode;
 
 	/**
 	 * Constructor for an empty view
 	 */
-	public View(int shardID) {
-				lastBlk.computeIfAbsent(
-				shardID,
-				k -> new ConcurrentHashMap<>());
+	public View() {
+		lastBlk = new HashMap<>();
+		state = new HashMap<>();
+		balance = new HashMap<>();
+		mode = new HashMap<>();
 	}
 
 	/**
@@ -25,11 +26,9 @@ public class View {
 	 * @param numID    numerical ID of node whose entry is to be updated
 	 * @param blkNumID the numerical ID of the latest block of the given node
 	 */
-	public synchronized void updateLastBlk(int numID, int blkNumID, int shardID) {
-		lastBlk.get(shardID).put(numID, blkNumID);
+	public synchronized void updateLastBlk(int numID, int blkNumID) {
+		lastBlk.put(numID, blkNumID);
 	}
-
-
 	
 	/**
 	 * Updates the state of the node whose numerical ID is given
@@ -48,8 +47,8 @@ public class View {
 		mode.put(numID, newMode);
 	}
 
-	public synchronized int getLastBlk(int numID, int shardID) {
-		return lastBlk.get(shardID).get(numID);
+	public synchronized int getLastBlk(int numID) {
+		return lastBlk.get(numID);
 	}
 
 	public synchronized int getState(int numID) {

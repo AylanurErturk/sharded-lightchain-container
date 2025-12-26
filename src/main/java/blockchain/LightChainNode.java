@@ -60,7 +60,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 		this.digitalSignature = new DigitalSignature();
 		this.hasher = new HashingTools();
 		this.transactions = new ArrayList<>();
-		
+		this.view = new View();
 		this.mode = params.getMode();
 		this.logger = Logger.getLogger(RMIPort + "");
 		String name = hasher.getHash(digitalSignature.getPublicKey().getEncoded(), params.getLevels());
@@ -89,8 +89,6 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 		super.setNameID(name);
 		super.setShardID(assignToShard(super.getNumID()));
 		super.setLookup(Simulation.lt(super.getShardID(), params.getLevels(), params.getMaxShards()));
-
-		setView(new View(super.getShardID()));
 
 		if (!isInitial) {
 			this.introducer = Simulation.getIntroducer(super.getShardID());
@@ -122,10 +120,6 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 
 	}
 
-	public void setView(View view) {
-		this.view = view;
-	}
-
 	/**
 	 * This method goes to the tail of the blockchain and iterates over the
 	 * transactions pointing at it, and then updating the entries corresponding to
@@ -151,7 +145,8 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			// iterate over found transactions pointing at the blockchain
 			for (int i = 0; i < tList.size(); ++i) {
 				int owner = tList.get(i).getOwner();
-				view.updateLastBlk(owner, blk.getNumID(), shardID); //here...
+				view.updateLastBlk(owner, blk.getNumID()); //here...
+				logger.info("owner from lastblk: " +owner +" last block num ID: " +blk.getNumID());
 
 			}
 			logger.debug("view successfully updated");
@@ -782,12 +777,12 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			// assuming that if a node is not in the view yet then this is the first
 			// transaction;
 			if (!view.hasLastBlkEntry(t.getOwner())) {
-				view.updateLastBlk(t.getOwner(), prev, t.getShardID());
+				view.updateLastBlk(t.getOwner(), prev);
 				return true;
 			}
 
 			// get the hash value of the block that contains the owner's latest transaction
-			int blkNumID = view.getLastBlk(t.getOwner(), t.getShardID());
+			int blkNumID = view.getLastBlk(t.getOwner());
 
 			// TODO: remove these checks after implementing type search
 			NodeInfo b1 = searchByNumID(prev);
