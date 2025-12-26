@@ -1000,9 +1000,9 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 
 	public String numToName(int num) {
 		String name = Integer.toBinaryString(num);
-		while (name.length() < params.getLevels()) {
-			name = "0" + name;
-		}
+		//while (name.length() < params.getLevels()) {
+		//	name = "0" + name;
+		//}
 		return name;
 	}
 
