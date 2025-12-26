@@ -75,7 +75,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 
 				int adjustedNum = (baseNum / shardCount) * shardCount + idx;
 
-				String newHash = Integer.toString(adjustedNum);
+				String newHash = Integer.toBinaryString(adjustedNum);
 				if (newHash.length() > params.getLevels()) {
 					newHash = newHash.substring(newHash.length() - params.getLevels());
 				} else if (newHash.length() < params.getLevels()) {
