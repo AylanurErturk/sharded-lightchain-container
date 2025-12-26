@@ -131,7 +131,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 	 */
 	public View updateView(int shardID) {
 		try {
-			logger.info("Updating view");
+			logger.debug("Updating view");
 			// get the tail of blockchain
 			Block blk = getLatestBlock(shardID); 
 			// change numID to nameID format to search for transactions
