@@ -688,7 +688,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
             List<NodeInfo> list = new ArrayList<>();
 
             if (ansNode == null || !ansNode.getNameID().equals(name)) {
-                logger.error("getNodesWithNameID: No Node was found with the given nameID");
+                logger.error("getNodesWithNameID: No Node was found with the given nameID: " +name);
                 return list;
             }
 
