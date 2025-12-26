@@ -2,6 +2,8 @@ package blockchain;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import main.java.skipGraph.LookupTable;
+
 public class View {
 
 	private final ConcurrentHashMap<Integer, ConcurrentHashMap<Integer, Integer>> lastBlk = new ConcurrentHashMap<>();
@@ -13,8 +15,9 @@ public class View {
 	 * Constructor for an empty view
 	 */
 	public View(int shardID) {
-		lastBlk.putIfAbsent(shardID, new ConcurrentHashMap<>());
-
+				lastBlk.computeIfAbsent(
+				shardID,
+				k -> new ConcurrentHashMap<>());
 	}
 
 	/**
@@ -26,6 +29,8 @@ public class View {
 	public synchronized void updateLastBlk(int numID, int blkNumID, int shardID) {
 		lastBlk.get(shardID).put(numID, blkNumID);
 	}
+
+
 	
 	/**
 	 * Updates the state of the node whose numerical ID is given

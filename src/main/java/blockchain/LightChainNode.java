@@ -90,7 +90,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 		super.setShardID(assignToShard(super.getNumID()));
 		super.setLookup(Simulation.lt(super.getShardID(), params.getLevels(), params.getMaxShards()));
 
-		this.view = new View(super.getShardID());
+		setView(new View(super.getShardID()));
 
 		if (!isInitial) {
 			this.introducer = Simulation.getIntroducer(super.getShardID());
@@ -120,6 +120,10 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 
 		}
 
+	}
+
+	public void setView(View view) {
+		this.view = view;
 	}
 
 	/**
