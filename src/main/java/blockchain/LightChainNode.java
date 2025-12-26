@@ -178,11 +178,13 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			}
 
 			logger.debug("Found Latest Block: " + blk.getNumID());
+			
 			int numToNameNum = blk.getNumID();
 			int mShards = params.getMaxShards();
 			numToNameNum = (numToNameNum / mShards) * mShards + this.getShardID(); 
 
 			String name = numToName(numToNameNum);
+			logger.info("blk name:" +blk.getNameID() + " calculated: " +numToNameNum);
 
 			logger.debug("getting transaction batch");
 			// Get all transaction with this nameID
