@@ -1,23 +1,22 @@
 package blockchain;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class View {
 
-	private Map<Integer, Integer> lastBlk;
-	private Map<Integer, Integer> state;
-	private Map<Integer, Integer> balance;
-	private Map<Integer, Boolean> mode;
+	private ConcurrentHashMap<Integer, Integer> lastBlk;
+	private ConcurrentHashMap<Integer, Integer> state;
+	private ConcurrentHashMap<Integer, Integer> balance;
+	private ConcurrentHashMap<Integer, Boolean> mode;
 
 	/**
 	 * Constructor for an empty view
 	 */
 	public View() {
-		lastBlk = new HashMap<>();
-		state = new HashMap<>();
-		balance = new HashMap<>();
-		mode = new HashMap<>();
+		lastBlk = new ConcurrentHashMap<>();
+		state =  new ConcurrentHashMap<>();
+		balance =  new ConcurrentHashMap<>();
+		mode =  new ConcurrentHashMap<>();
 	}
 
 	/**
