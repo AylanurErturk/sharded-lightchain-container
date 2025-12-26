@@ -47,7 +47,7 @@ public class Block extends NodeInfo {
 
 		super.setNumID(Integer.parseInt(this.hash, 2));
 		super.setShardID(Math.floorMod(super.getNumID(), maxShards));
-		//assert super.getShardID() == ownerShard;
+		assert super.getShardID() == ownerShard;
 
 	}
 
