@@ -146,7 +146,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			for (int i = 0; i < tList.size(); ++i) {
 				int owner = tList.get(i).getOwner();
 				view.updateLastBlk(owner, blk.getNumID()); //here...
-				logger.info("owner from lastblk: " +owner +" last block num ID: " +blk.getNumID());
+				logger.debug("owner from lastblk: " +owner +" last block num ID: " +blk.getNumID());
 
 			}
 			logger.debug("view successfully updated");
@@ -430,7 +430,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 
 		List<NodeInfo> list = getNodesWithNameID(name);
 		List<Transaction> tList = new ArrayList<>();
-		logger.info("found " + list.size() + " nodes with name " +name);
+		logger.debug("found " + list.size() + " nodes with name " +name);
 		for (NodeInfo t : list) {
 			if (t instanceof Transaction)
 				tList.add((Transaction) t);
