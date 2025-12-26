@@ -36,7 +36,7 @@ public class Transaction extends NodeInfo {
 		int ownerShard = Math.floorMod(owner, maxShards); //we want same shard with the owner
 		int adjustedNum = (baseNum / maxShards) * maxShards + ownerShard;
 			
-		String newHash = Integer.toBinaryString(adjustedNum);
+		String newHash = Integer.toString(adjustedNum);
 
 
 		this.hash = newHash; //make the hash equal

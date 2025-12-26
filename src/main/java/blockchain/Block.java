@@ -36,12 +36,14 @@ public class Block extends NodeInfo {
 		hasher = new HashingTools();
 
 		String h = hasher.getHash(prev + owner, levels);
+
     	int baseNum = Integer.parseInt(h, 2);
+
 		int ownerShard = Math.floorMod(owner, maxShards); //we want same shard with the owner
+
 		int adjustedNum = (baseNum / maxShards) * maxShards + ownerShard;
 			
-		String newHash = Integer.toBinaryString(adjustedNum);
-
+		String newHash = Integer.toString(adjustedNum);
 
 		this.hash = newHash; //make the hash equal
 
