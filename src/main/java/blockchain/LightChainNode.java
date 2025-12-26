@@ -1062,7 +1062,7 @@ public SimLog startSimSync(int numTransactions, int pace) {
 
 			logger.debug("Mining ..." + i);
 			//Block b = mineAttempt();
-			if (b == null)
+			//if (b == null)
 				logger.debug("block is null!");
 			logger.debug("Done mining.");
 		}
