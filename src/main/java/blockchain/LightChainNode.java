@@ -84,6 +84,30 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			}
 			isInitial = true;
 		}
+
+		if (!isInitial) {
+			int idx = 0;
+			if (offset.get() == shardCount)
+				offset.getAndSet(0);
+
+			idx = offset.getAndIncrement();
+
+			if (idx < shardCount) {
+				int baseNum = Integer.parseInt(name, 2);
+
+				int adjustedNum = (baseNum / shardCount) * shardCount + idx;
+
+				String newHash = Integer.toBinaryString(adjustedNum);
+				if (newHash.length() > params.getLevels()) {
+					newHash = newHash.substring(newHash.length() - params.getLevels());
+				} else if (newHash.length() < params.getLevels()) {
+					newHash = "0".repeat(params.getLevels() - newHash.length()) + newHash;
+				}
+				name = newHash;
+
+			}
+		}
+
 		super.setNumID(Integer.parseInt(name, 2));
 		name = hasher.getHash(name, params.getLevels());
 		super.setNameID(name);
@@ -133,7 +157,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 		try {
 			logger.debug("Updating view");
 			// get the tail of blockchain
-			Block blk = getLatestBlock(shardID); 
+			Block blk = getLatestBlock(shardID);
 			// change numID to nameID format to search for transactions
 			String name = numToName(blk.getNumID());
 			// get transactions pointing at the tail
@@ -145,8 +169,8 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			// iterate over found transactions pointing at the blockchain
 			for (int i = 0; i < tList.size(); ++i) {
 				int owner = tList.get(i).getOwner();
-				view.updateLastBlk(owner, blk.getNumID()); //here...
-				logger.debug("owner from lastblk: " +owner +" last block num ID: " +blk.getNumID());
+				view.updateLastBlk(owner, blk.getNumID()); // here...
+				logger.debug("owner from lastblk: " + owner + " last block num ID: " + blk.getNumID());
 
 			}
 			logger.debug("view successfully updated");
@@ -179,11 +203,10 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			}
 
 			logger.debug("Found Latest Block: " + blk.getNumID());
-			
 
 			String name = numToName(blk.getNumID());
 
-			//logger.info("name id given: " +name + " calculated name: " +calcName);
+			// logger.info("name id given: " +name + " calculated name: " +calcName);
 
 			logger.debug("getting transaction batch");
 			// Get all transaction with this nameID
@@ -240,17 +263,19 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 	 *
 	 * @param blk the block for which a flag node will be inserted
 	 */
-	private void insertFlagNode(Block blk, int shardID) {
-		logger.debug("inserting Flag Node from block num id:" + blk.getNumID() + " to shard " +shardID);
-		super.insertDataNode(Const.ZERO_ID, blk.getHash(), shardID);
+	public void insertFlagNode(Block blk, int shardID) {
+		logger.debug(
+				"inserting Flag Node from block num id:" + blk.getNumID() + " to shard " + shardID + " with num ID "
+						+ shardID);
+		super.insertDataNode(shardID, blk.getHash(), shardID);
 	}
 
 	/**
 	 * removes the flag node pointing to the latest block that was inserted by this
 	 * node
 	 */
-	public void removeFlagNode() throws RemoteException {
-		super.delete(Const.ZERO_ID);
+	public void removeFlagNode(int shardID) throws RemoteException {
+		super.delete(shardID);
 	}
 
 	/**
@@ -285,7 +310,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 				boolean verified = validateTransaction(t);
 				if (verified) {
 					insertTransaction(t);
-					logger.debug("Transaction Successfully Added");
+					logger.info("Transaction Successfully Added with name: " + t.getNameID());
 					return t;
 				} else {
 					logger.debug("Transaction adding failed.");
@@ -293,7 +318,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 				waitCount--;
 
 			}
-			logger.debug("Transaction Making Failed");
+			logger.info("Transaction Making Failed");
 			return null;
 
 		} catch (Exception e) {
@@ -326,7 +351,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			// insertFlagNode(blk);
 		} else {
 			LightChainRMIInterface prevOwnerRMI = getLightChainRMI(prevAddress);
-			prevOwnerRMI.removeFlagNode();
+			prevOwnerRMI.removeFlagNode(blk.getShardID());
 
 			insertNode(blk);
 			insertFlagNode(blk, blk.getShardID());
@@ -367,7 +392,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 		try {
 			logger.debug("searching for flag");
 			logger.debug("shard id given: " + shardID);
-			NodeInfo flag = searchByNumID(Const.ZERO_ID);
+			NodeInfo flag = searchByNumID(shardID);
 			logger.debug("flag num from latest block: " + flag.getNumID() + " flag name " + flag.getNameID());
 
 			logger.debug("searching for latest block");
@@ -430,7 +455,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 
 		List<NodeInfo> list = getNodesWithNameID(name);
 		List<Transaction> tList = new ArrayList<>();
-		logger.debug("found " + list.size() + " nodes with name " +name);
+		logger.info("found " + list.size() + " nodes with name " + name);
 		for (NodeInfo t : list) {
 			if (t instanceof Transaction)
 				tList.add((Transaction) t);
@@ -528,15 +553,14 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 				if (signature.hasBalance())
 					hasBalance++;
 
-				logger.debug("isAuth: " +signature.isAuth() + " isCorrect: " +signature.isCorrect() +
-				 " isSound: " +signature.isSound() + " has balance: " +signature.hasBalance());
+				logger.debug("isAuth: " + signature.isAuth() + " isCorrect: " + signature.isCorrect() +
+						" isSound: " + signature.isSound() + " has balance: " + signature.hasBalance());
 
 				// if a validators returns null that means the validation has failed
 				if (signature.getBytes() != null) {
 					numValidations++;
 					timePerValidator += signature.getValidationTime();
-				}
-				else {
+				} else {
 					logger.debug("Damn.");
 				}
 
@@ -546,9 +570,9 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			validated = (numValidations >= params.getSignaturesThreshold());
 
 			if (validated) {
-				logger.debug("Valid Transaction");
+				logger.info("Valid Transaction");
 			} else
-				logger.debug("Transaction Rejected");
+				logger.error("Transaction Rejected");
 
 			long end = System.currentTimeMillis();
 
@@ -626,9 +650,6 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			int adjustedNum = (baseNum / maxShards) * maxShards + ownerShard;
 
 			String newHash = Integer.toBinaryString(adjustedNum);
-			if (newHash.length() < params.getLevels()) {
-				newHash = "0".repeat(params.getLevels() - newHash.length()) + newHash;
-			} // leading 0s added
 
 			if (!newHash.equals(blk.getHash())) {
 				logger.debug("Hash of block not generated properly");
@@ -857,15 +878,16 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			// generate the hash using the equation to check if it was generated correctly
 			String hash = hasher.getHash(t.getPrev() + t.getOwner() + t.getCont(), params.getLevels());
 			// return false if it was not generated properly
-			int maxShards = params.getMaxShards();
+			int mShards = params.getMaxShards();
 			int baseNum = Integer.parseInt(hash, 2);
-			int offset = Math.floorMod(t.getOwner(), maxShards); // we want same shard with the owner
-			int adjustedNum = (baseNum / maxShards) * maxShards + offset;
+			int ost = Math.floorMod(t.getOwner(), mShards); // we want same shard with the owner
+			int adjustedNum = (baseNum / maxShards) * mShards + ost;
 
 			String newHash = Integer.toBinaryString(adjustedNum);
-			if (newHash.length() < params.getLevels()) {
-				newHash = "0".repeat(params.getLevels() - newHash.length()) + newHash;
-			} // leading 0s added
+
+			while (newHash.length() < params.getLevels()) {
+				newHash = "0" + newHash;
+			}
 
 			// return false if it was not generated properly
 			if (!newHash.equals(t.getHash())) {
@@ -877,8 +899,11 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 			List<SignedBytes> tSigma = t.getSigma();
 			PublicKey ownerPublicKey = getOwnerPublicKey(t.getOwner());
 			boolean verified = false;
-			if (ownerPublicKey == null)
+			if (ownerPublicKey == null) {
+				logger.debug("Owner public key null");
 				return false;
+			}
+
 			for (int i = 0; i < tSigma.size(); ++i) {
 				// if we find one signature which belongs to the owner then we set verified to
 				// true
@@ -936,7 +961,7 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 	public PublicKey getOwnerPublicKey(int num) throws RemoteException {
 		try {
 			// find owner from the network
-			
+
 			NodeInfo owner = searchByNumID(num);
 
 			if (owner.getNumID() != num) {
@@ -1038,10 +1063,10 @@ public class LightChainNode extends SkipNode implements LightChainRMIInterface {
 		return simLog;
 	}
 
-public SimLog startSimSync(int numTransactions, int pace) {
+	public SimLog startSimSync(int numTransactions, int pace) {
 		simLog = new SimLog(Const.HONEST);
 		ThreadLocalRandom rnd = ThreadLocalRandom.current();
-		logger.info("Starting: " +starting.getAndIncrement());
+		logger.info("Starting: " + starting.getAndIncrement());
 		for (int i = 0; i < numTransactions; i++) {
 			try {
 				Thread.sleep(rnd.nextInt(500) + 500);
@@ -1066,7 +1091,7 @@ public SimLog startSimSync(int numTransactions, int pace) {
 				logger.debug("block is null!");
 			logger.debug("Done mining.");
 		}
-		logger.info("returning simlog: " +completed.getAndIncrement());
+		logger.info("returning simlog: " + completed.getAndIncrement());
 		return simLog;
 	}
 

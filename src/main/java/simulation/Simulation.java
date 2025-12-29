@@ -3,6 +3,7 @@ package simulation;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -16,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import blockchain.Block;
 import blockchain.LightChainNode;
@@ -26,20 +26,43 @@ import skipGraph.NodeInfo;
 import util.Const;
 import util.Util;
 
-
 public class Simulation {
 
 	private static final ConcurrentHashMap<Integer, LookupTable> LOOKUPS = new ConcurrentHashMap<>(); // sid -> l.table
 	private static final ConcurrentHashMap<Integer, String> shardIntroducers = new ConcurrentHashMap<>();
 	private static final ConcurrentHashMap<Integer, Boolean> shardInserted = new ConcurrentHashMap<>();
+	private static final List<LightChainNode> introducers = new ArrayList<>();
+	private static final List<LightChainNode> allNodes = new ArrayList<>();
 
-public static void startSimulation(Parameters params, int nodeCount, int iterations, int pace) {
+
+	public static void startSimulation(Parameters params, int nodeCount, int iterations, int pace) {
 		final int maxShards = params.getMaxShards();
 		final ExecutorService pool = Executors.newFixedThreadPool(
 				Math.max(2, Runtime.getRuntime().availableProcessors()));
 		final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-		int stripes = Math.min(20, Runtime.getRuntime().availableProcessors());
+		int stripes = Math.min(10, Runtime.getRuntime().availableProcessors());
+		
+
+		
+		for (int i = 0; i < nodeCount; i++) {
+			if (i < params.getMaxShards()) {
+				buildNodeNoThrow(params, null, true);
+				continue;
+			}
+			buildNodeNoThrow(params, shardIntroducers.get(0), false);
+
+		}
+
+		ConcurrentHashMap<Integer, Block> genesisByShard = new ConcurrentHashMap<>(maxShards);
+		
+
+		for (int i = 0; i < params.getMaxShards(); i++) {
+			Block b = introducers.get(i).insertGenesis();
+			introducers.get(i).logLevel(0);
+			introducers.get(i).insertFlagNode(b, b.getShardID());
+			
+		}
 
 		List<ExecutorService> stripeExecs = IntStream.range(0, stripes)
 				.mapToObj(i -> Executors.newSingleThreadExecutor(r -> {
@@ -49,87 +72,48 @@ public static void startSimulation(Parameters params, int nodeCount, int iterati
 				}))
 				.toList();
 
-		try {
-			List<CompletableFuture<LightChainNode>> introFuture = IntStream.range(0, maxShards)
-					.mapToObj(i -> CompletableFuture.supplyAsync(
-							() -> buildNodeNoThrow(params, null, true), pool))
-					.toList();
-
-			List<LightChainNode> introducers = waitAll("Introducer build", introFuture, 60, TimeUnit.SECONDS);
-
-			Map<Integer, LightChainNode> introducerByShard = introducers.stream().collect(
-					Collectors.toMap(LightChainNode::getShardID, n -> n, (a, b) -> {
-						throw new IllegalStateException("Duplicate introducer for shard " + a.getShardID());
-					}, ConcurrentHashMap::new));
-
-			if (introducerByShard.size() != maxShards) {
-				throw new IllegalStateException(
-						"Expected " + maxShards + " shard introducers, got " + introducerByShard.size());
-			}
-
-
-			int remaining = Math.max(0, nodeCount - maxShards);
-			List<CompletableFuture<LightChainNode>> nodeFuture = IntStream.range(0, remaining)
-					.mapToObj(i -> CompletableFuture.supplyAsync(() -> {
-						LightChainNode intro = introducers.get(ThreadLocalRandom.current().nextInt(introducers.size()));
-						return buildNodeNoThrow(params, intro.getAddress(), false);
-					}, pool))
-					.toList();
-
-			List<LightChainNode> otherNodes = waitAll("Node build", nodeFuture, 5, TimeUnit.MINUTES);
-
-			List<LightChainNode> allNodes = Stream.concat(introducers.stream(), otherNodes.stream()).toList();
-
-			ConcurrentHashMap<Integer, Block> genesisByShard = new ConcurrentHashMap<>(maxShards);
-			List<CompletableFuture<Void>> genesisFuture = introducers.stream()
-					.map(intro -> CompletableFuture.runAsync(() -> {
-						Block b = intro.insertGenesis();
-						genesisByShard.put(b.getShardID(), b);
-						intro.logLevel(0);
-					}, pool)).toList();
-			waitAllVoid("Genesis", genesisFuture, 60, TimeUnit.SECONDS);
-
-			List<CompletableFuture<Void>> flagCFs = introducers.stream().map(intro -> CompletableFuture.runAsync(() -> {
-				Block b = genesisByShard.get(intro.getShardID());
-				if (b == null)
-					throw new IllegalStateException("Missing genesis for shard " + intro.getShardID());
-				intro.insertFlagsToShards(b);
-			}, pool)).toList();
-			waitAllVoid("Flag insertion", flagCFs, 60, TimeUnit.SECONDS);
-
+		
 			ConcurrentHashMap<NodeInfo, SimLog> map = new ConcurrentHashMap<>();
 
 			Function<LightChainNode, ExecutorService> execFor = n -> {
-				int idx = Math.floorMod((n.getNumID() % 10), stripes);
+				int idx = Math.floorMod((n.getNumID()), stripes);
 				return stripeExecs.get(idx);
 			};
 
+			Map<Integer, List<LightChainNode>> groups = allNodes.stream()
+					.collect(Collectors.groupingBy(n -> n.getShardID()));
+
 			long start = System.currentTimeMillis();
 
-			List<CompletableFuture<Void>> simCFs = allNodes.stream()
-					.map(n -> CompletableFuture.supplyAsync(
-							() -> n.startSimSync(iterations, pace),
-							execFor.apply(n))
-							.thenAccept(lg -> map.put(n.getPeer(), lg))
-							.exceptionally(ex -> {
-								Util.log("Node " + n.getPeer() + " failed: " + ex);
-								return null;
-							}))
-					.toList();
+			try {
+				for (int shard = 0; shard <= params.getMaxShards(); shard++) {
+				List<LightChainNode> group = groups.getOrDefault(shard, List.of());
 
-			CompletableFuture.allOf(simCFs.toArray(new CompletableFuture[0])).join();
+				List<CompletableFuture<Void>> cfList = group.stream()
+						.map(n -> CompletableFuture.supplyAsync(
+								() -> n.startSimSync(iterations, pace),
+								execFor.apply(n))
+								.thenAccept(lg -> map.put(n.getPeer(), lg))
+								.exceptionally(ex -> {
+									Util.log("Node " + n.getPeer() + " failed: " + ex);
+									return null;
+								})) 
+						.toList();
+
+				CompletableFuture.allOf(cfList.toArray(new CompletableFuture[0])).join();
+			}
 
 			long end = System.currentTimeMillis();
 			Util.log("Simulation Done. Time Taken " + (end - start) + " ms");
 			processData(map, iterations);
+				
+			} finally {
+				stripeExecs.forEach(ExecutorService::shutdown);
+			}
 
-		} catch (Exception ee) {
-			throw new RuntimeException(ee);
-		} finally {
-			pool.shutdown();
-			scheduler.shutdown();
-			stripeExecs.forEach(ExecutorService::shutdown);
-		}
+			
+
+
 	}
 
 	private static LightChainNode buildNodeNoThrow(Parameters p, String introAddr, boolean isIntro) {
@@ -151,9 +135,13 @@ public static void startSimulation(Parameters params, int nodeCount, int iterati
 					LightChainNode n = new LightChainNode(params, port, Const.DUMMY_INTRODUCER, true);
 					shardInserted.put(n.getShardID(), true);
 					shardIntroducers.put(n.getShardID(), n.getAddress());
+					introducers.add(n);
+					allNodes.add(n);
 					return n;
 				} else {
-					return new LightChainNode(params, port, introducerAddr, false);
+					LightChainNode n = new LightChainNode(params, port, introducerAddr, false);
+					allNodes.add(n);
+					return n;
 				}
 			} catch (Exception e) {
 				if (attempts >= 15)

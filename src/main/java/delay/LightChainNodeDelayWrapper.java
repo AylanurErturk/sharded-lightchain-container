@@ -1,15 +1,14 @@
 package delay;
 
+import java.rmi.RemoteException;
+import java.security.PublicKey;
+
 import blockchain.Block;
 import blockchain.LightChainRMIInterface;
 import blockchain.Transaction;
 import remoteTest.Configuration;
 import signature.SignedBytes;
 import simulation.SimLog;
-import skipGraph.RMIInterface;
-
-import java.rmi.RemoteException;
-import java.security.PublicKey;
 
 public class LightChainNodeDelayWrapper extends SkipNodeDelayWrapper implements LightChainRMIInterface {
     private LightChainRMIInterface innerNode;
@@ -56,9 +55,9 @@ public class LightChainNodeDelayWrapper extends SkipNodeDelayWrapper implements 
     }
 
     @Override
-    public void removeFlagNode() throws RemoteException {
+    public void removeFlagNode(int shardID) throws RemoteException {
         before();
-        innerNode.removeFlagNode();
+        innerNode.removeFlagNode(shardID);
     }
 
     @Override

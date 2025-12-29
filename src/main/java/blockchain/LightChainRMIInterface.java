@@ -4,7 +4,6 @@ import java.rmi.RemoteException;
 import java.security.PublicKey;
 
 import remoteTest.Configuration;
-import remoteTest.TestingLog;
 import signature.SignedBytes;
 import simulation.SimLog;
 import skipGraph.RMIInterface;
@@ -18,7 +17,7 @@ public interface LightChainRMIInterface extends RMIInterface {
 
 	public PublicKey getPublicKey() throws RemoteException;
 
-	public void removeFlagNode() throws RemoteException;
+	public void removeFlagNode(int shardID) throws RemoteException;
 
 	public Configuration getConf() throws RemoteException;
 

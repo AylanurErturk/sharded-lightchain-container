@@ -38,6 +38,10 @@ public class Transaction extends NodeInfo {
 			
 		String newHash = Integer.toBinaryString(adjustedNum);
 
+		while (newHash.length() < levels) {
+			newHash = "0" + newHash;
+		}
+
 
 		this.hash = newHash; //make the hash equal
 

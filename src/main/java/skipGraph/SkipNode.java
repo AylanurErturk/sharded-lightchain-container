@@ -133,7 +133,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
     public void delete(int num) throws RemoteException {
 
         try {
-            logger.info("Deleting :" + num);
+            logger.debug("Deleting :" + num);
             for (int j = lookup.getMaxLevels(); j >= 0; j--) {
                 // if there are no neighbors at level j, just move on
                 NodeInfo lNode = lookup.get(num, j, Const.LEFT);
@@ -168,7 +168,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
     }
 
     public void insertDataNode(int nodeNumID, String nodeNameID, int nodeShardID) {
-        logger.info("inserting data node...");
+        logger.debug("inserting data node with num ID " +nodeNumID);
         insertNode(new NodeInfo(address, nodeNumID, nodeNameID, nodeShardID));
     }
 
@@ -199,7 +199,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
                 logger.error("The address is null");
                 return;
             }
-
+            //logger.info("here");
             // First, we insert the node at level 0
             RMIInterface closestNodeRMI = getRMI(closestNode.getAddress());
 
@@ -791,7 +791,7 @@ public class SkipNode extends UnicastRemoteObject implements RMIInterface {
     public void logLevel(int level) {
         List<NodeInfo> list = lookup.getLevel(level, peerNode);
         for (NodeInfo n : list) {
-            logger.info(n.getNumID() + " " + n.getNameID() + " " + n.getClass());
+            logger.debug(n.getNumID() + " " + n.getNameID() + " " + n.getClass());
         }
     }
 

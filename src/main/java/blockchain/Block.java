@@ -20,13 +20,11 @@ public class Block extends NodeInfo {
 	private final int index;
 	private int levels;
 
-
-
 	/**
-	 * @param prev the address of the previous block
+	 * @param prev  the address of the previous block
 	 * @param owner the address of the owner of the block
 	 */
-	public Block(String prev, int owner, String address, int idx,int levels, int shardID, int maxShards) {
+	public Block(String prev, int owner, String address, int idx, int levels, int shardID, int maxShards) {
 		super(address, 0, prev, shardID);
 		this.index = idx;
 		this.prev = prev;
@@ -36,18 +34,17 @@ public class Block extends NodeInfo {
 		hasher = new HashingTools();
 
 		String h = hasher.getHash(prev + owner, levels);
-    	int baseNum = Integer.parseInt(h, 2);
-		int ownerShard = Math.floorMod(owner, maxShards); //we want same shard with the owner
+		int baseNum = Integer.parseInt(h, 2);
+		int ownerShard = Math.floorMod(owner, maxShards); // we want same shard with the owner
 		int adjustedNum = (baseNum / maxShards) * maxShards + ownerShard;
-			
-		String newHash = Integer.toBinaryString(adjustedNum);
-		if (newHash.length() > levels) 
-			newHash = newHash.substring(newHash.length() - levels);
-		if (newHash.length() < levels) {
-        	newHash = "0".repeat(levels - newHash.length()) + newHash;
-    	} //leading 0s added
 
-		this.hash = newHash; //make the hash equal
+		String newHash = Integer.toBinaryString(adjustedNum);
+
+		while (newHash.length() < levels) {
+			newHash = "0" + newHash;
+		}
+
+		this.hash = newHash; // make the hash equal
 
 		super.setNumID(Integer.parseInt(this.hash, 2));
 		super.setShardID(Math.floorMod(super.getNumID(), maxShards));
@@ -55,7 +52,8 @@ public class Block extends NodeInfo {
 
 	}
 
-	public Block(String prev, int owner, String address, List<Transaction> tList, int idx, int levels, int shardID, int maxShards) {
+	public Block(String prev, int owner, String address, List<Transaction> tList, int idx, int levels, int shardID,
+			int maxShards) {
 		super(address, 0, prev, shardID);
 		this.index = idx;
 		this.prev = prev;
@@ -64,24 +62,22 @@ public class Block extends NodeInfo {
 		this.levels = levels;
 		this.sigma = new ArrayList<>();
 		hasher = new HashingTools();
-		
+
 		hasher = new HashingTools();
-		
+
 		String h = hasher.getHash(prev + owner + getTransactionSetString(), levels);
-    	int baseNum = Integer.parseInt(h, 2);
-		
-		int ownerShard = Math.floorMod(owner, maxShards); //we want same shard with the owner
+		int baseNum = Integer.parseInt(h, 2);
+
+		int ownerShard = Math.floorMod(owner, maxShards); // we want same shard with the owner
 		int adjustedNum = (baseNum / maxShards) * maxShards + ownerShard;
-			
+
 		String newHash = Integer.toBinaryString(adjustedNum);
-		if (newHash.length() > levels) 
-			newHash = newHash.substring(newHash.length() - levels);
-		if (newHash.length() < levels) {
-        	newHash = "0".repeat(levels - newHash.length()) + newHash;
-    	} //leading 0s added
 
-		this.hash = newHash; //make the hash equal
+		while (newHash.length() < levels) {
+			newHash = "0" + newHash; //leading 0's
+		}
 
+		this.hash = newHash; // make the hash equal
 
 		super.setNumID(Integer.parseInt(this.hash, 2));
 		super.setShardID(Math.floorMod(super.getNumID(), maxShards));
@@ -131,13 +127,13 @@ public class Block extends NodeInfo {
 	public int getIndex() {
 		return index;
 	}
-	
+
 	public int getLevels() {
 		return levels;
 	}
-	
+
 	public String toString() {
-		
+
 		return prev + owner + getTransactionSetString();
 	}
 
@@ -147,6 +143,5 @@ public class Block extends NodeInfo {
 			sb.append(transactionSet.get(i).toString());
 		return sb.toString();
 	}
-	
-	
+
 }

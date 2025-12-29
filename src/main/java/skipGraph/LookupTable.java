@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -99,7 +100,11 @@ public class LookupTable {
     public void initializeNode(NodeInfo node) {
         nodeBuffer = Util.assignNode(node);
         tableBuffer = new Table();
-        
+        try {
+            tableBuffer.lockTable();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -109,21 +114,13 @@ public class LookupTable {
      * committed.
      */
     public boolean finalizeNode() {
-
         if (this.nodeBuffer == null || this.tableBuffer == null)
             return false;
-        try {
-            tableBuffer.lockTable();
-            dataNodes.put(nodeBuffer.getNumID(), nodeBuffer);
-            lookup.put(nodeBuffer.getNumID(), tableBuffer);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            
-            tableBuffer.unlockTable();
-            nodeBuffer = null;
-            tableBuffer = null;
-        }  
+        dataNodes.put(nodeBuffer.getNumID(), nodeBuffer);
+        lookup.put(nodeBuffer.getNumID(), tableBuffer);
+        tableBuffer.unlockTable();
+        nodeBuffer = null;
+        tableBuffer = null;
         return true;
     }
 
