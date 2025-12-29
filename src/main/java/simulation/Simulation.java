@@ -91,8 +91,8 @@ public class Simulation {
 
 				List<CompletableFuture<Void>> cfList = group.stream()
 						.map(n -> CompletableFuture.supplyAsync(
-								() -> n.startSimSync(iterations, pace),
-								execFor.apply(n))
+								() -> n.startSimSync(iterations, pace))
+								//execFor.apply(n))
 								.thenAccept(lg -> map.put(n.getPeer(), lg))
 								.exceptionally(ex -> {
 									Util.log("Node " + n.getPeer() + " failed: " + ex);
